@@ -1,1 +1,1 @@
-Streams redis events to a socket.io server.
+Streams insight transaction events to a beanstalk queue.
