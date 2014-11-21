@@ -23,10 +23,12 @@
 
   dataAPIVersion = 1;
 
+  console.log("connecting to beanstalk at " + beanstalkHost + ":" + beanstalkPort);
+
   beanstalkClient = require('nodestalker').Client("" + beanstalkHost + ":" + beanstalkPort);
 
   socket.on('connect', function() {
-    console.log("socket client connected");
+    console.log("socket client connected to insight at http://" + insightHost + ":" + insightPort);
     socket.emit('subscribe', 'inv');
   });
 
