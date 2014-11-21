@@ -1,0 +1,24 @@
+{
+  "name": "xstalker",
+  "version": "0.0.0",
+  "description": "Blockchain transactions to beanstalkd",
+  "main": "xstalker.js",
+  "dependencies": {
+    "socket.io-client": "^1",
+    "nodestalker": "^0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deweller/auctioneer-socket"
+  },
+  "author": "Devon Weller",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deweller/auctioneer-socket/issues"
+  },
+  "homepage": "https://github.com/deweller/auctioneer-socket"
+}
