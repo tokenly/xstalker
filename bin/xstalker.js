@@ -23,17 +23,17 @@
 
   dataAPIVersion = 1;
 
-  console.log("connecting to beanstalk at " + beanstalkHost + ":" + beanstalkPort);
+  console.log("[" + (new Date().toString()) + "] connecting to beanstalk at " + beanstalkHost + ":" + beanstalkPort);
 
   beanstalkClient = require('nodestalker').Client("" + beanstalkHost + ":" + beanstalkPort);
 
   socket.on('connect', function() {
-    console.log("socket client connected to insight at http://" + insightHost + ":" + insightPort);
+    console.log("[" + (new Date().toString()) + "] socket client connected to insight at http://" + insightHost + ":" + insightPort);
     socket.emit('subscribe', 'inv');
   });
 
   socket.on('disconnect', function() {
-    console.log("socket client disconnected");
+    console.log("[" + (new Date().toString()) + "] socket client disconnected");
   });
 
   socket.on("tx", function(data) {
@@ -52,7 +52,7 @@
       }).on('end', function() {
         var txData;
         txData = JSON.parse(body);
-        console.log("IN: " + txData.valueIn + ", OUT: " + txData.valueOut);
+        console.log("[" + (new Date().toString()) + "] IN: " + txData.valueIn + ", OUT: " + txData.valueOut);
         data = {
           ver: dataAPIVersion,
           ts: transactionTimestamp,
@@ -61,12 +61,37 @@
         insertJobIntoBeanstalk('BTCTransactionJob', data);
       });
     }).on('error', function(e) {
-      console.log("Got error: " + e.message);
+      console.log(("[" + (new Date().toString()) + "] Got error: ") + e.message);
     });
   });
 
   socket.on("block", function(data) {
-    console.log("received block:", data);
+    var blockTimestamp, options;
+    console.log("[" + (new Date().toString()) + "] received block:", data);
+    blockTimestamp = 0 + Date.now();
+    options = {
+      host: insightHost,
+      port: insightPort,
+      path: "/api/block/" + data
+    };
+    http.get(options, function(res) {
+      var body;
+      body = '';
+      res.on('data', function(chunk) {
+        body += chunk;
+      }).on('end', function() {
+        var blockData;
+        blockData = JSON.parse(body);
+        data = {
+          ver: dataAPIVersion,
+          ts: blockTimestamp,
+          block: blockData
+        };
+        insertJobIntoBeanstalk('BTCBlockJob', data);
+      });
+    }).on('error', function(e) {
+      console.log(("[" + (new Date().toString()) + "] Got error: ") + e.message);
+    });
   });
 
   insertJobIntoBeanstalk = function(jobType, data) {
@@ -75,12 +100,12 @@
         job: "Tokenly\\XChainListener\\Job\\" + jobType,
         data: data
       })).onSuccess(function() {
-        console.log("job loaded " + jobType + " (" + data.tx.txid + ")");
+        console.log("[" + (new Date().toString()) + "] loaded job " + jobType);
       }).onError(function() {
-        return console.log("error loading job " + jobType + " (" + data.tx.txid + ")");
+        return console.log("[" + (new Date().toString()) + "] error loading job " + jobType);
       });
     }).onError(function() {
-      return console.log("error connecting to beanstalk");
+      return console.log("[" + (new Date().toString()) + "] error connecting to beanstalk");
     });
   };
 

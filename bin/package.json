@@ -5,7 +5,7 @@
   "main": "xstalker.js",
   "dependencies": {
     "socket.io-client": "^1",
-    "nodestalker": "^0.1"
+    "nodestalker": "pascalopitz/nodestalker#583fd528c1"
   },
   "devDependencies": {},
   "scripts": {

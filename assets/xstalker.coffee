@@ -15,11 +15,14 @@ http = require('http')
 socket = require('socket.io-client')("http://#{insightHost}:#{insightPort}")
 
 dataAPIVersion = 1
+
+
+console.log "[#{new Date().toString()}] connecting to beanstalk at #{beanstalkHost}:#{beanstalkPort}"
 beanstalkClient = require('nodestalker').Client("#{beanstalkHost}:#{beanstalkPort}")
 
 
 socket.on 'connect', ()->
-    console.log "socket client connected"
+    console.log "[#{new Date().toString()}] socket client connected to insight at http://#{insightHost}:#{insightPort}"
 
     # subscribe to the inv room, where all events are published
     socket.emit('subscribe', 'inv')
@@ -27,11 +30,11 @@ socket.on 'connect', ()->
     return
 
 socket.on 'disconnect', ()->
-    console.log "socket client disconnected"
+    console.log "[#{new Date().toString()}] socket client disconnected"
     return
 
 socket.on "tx", (data) ->
-    # console.log "received tx:",data
+    # console.log "[#{new Date().toString()}] received tx:",data
 
     transactionTimestamp = 0 + Date.now()
 
@@ -41,10 +44,10 @@ socket.on "tx", (data) ->
         port: insightPort,
         path: "/api/tx/#{data.txid}"
     }
-    # console.log("loading #{options.path}")
+    # console.log("[#{new Date().toString()}] loading #{options.path}")
 
     http.get options, (res)->
-        # console.log("Got response (#{res.statusCode}) ")
+        # console.log("[#{new Date().toString()}] Got response (#{res.statusCode}) ")
 
         # get the transaction
         body = ''
@@ -53,8 +56,8 @@ socket.on "tx", (data) ->
             return
         .on 'end', ()->
             txData = JSON.parse(body)
-            # console.log("body: ", body)
-            console.log("IN: #{txData.valueIn}, OUT: #{txData.valueOut}")
+            # console.log("[#{new Date().toString()}] body: ", body)
+            console.log("[#{new Date().toString()}] IN: #{txData.valueIn}, OUT: #{txData.valueOut}")
 
             # insert job
             data = {
@@ -68,14 +71,50 @@ socket.on "tx", (data) ->
         
         return
     .on 'error', (e)->
-        console.log("Got error: " + e.message)
+        console.log("[#{new Date().toString()}] Got error: " + e.message)
         return
 
 
     return
 
 socket.on "block", (data) ->
-    console.log "received block:",data
+    console.log "[#{new Date().toString()}] received block:",data
+    blockTimestamp = 0 + Date.now()
+
+    # query insight about this tx
+    options = {
+        host: insightHost,
+        port: insightPort,
+        path: "/api/block/#{data}"
+    }
+    # console.log("[#{new Date().toString()}] loading #{options.path}")
+
+    http.get options, (res)->
+        # console.log("[#{new Date().toString()}] Got response (#{res.statusCode}) ")
+
+        # get the transaction
+        body = ''
+        res.on 'data', (chunk)->
+            body += chunk
+            return
+        .on 'end', ()->
+            blockData = JSON.parse(body)
+
+            # insert job
+            data = {
+                ver: dataAPIVersion
+                ts: blockTimestamp
+                block: blockData
+            }
+            insertJobIntoBeanstalk('BTCBlockJob', data)
+
+            return
+        
+        return
+    .on 'error', (e)->
+        console.log("[#{new Date().toString()}] Got error: " + e.message)
+        return
+
     return
 
 
@@ -87,13 +126,13 @@ insertJobIntoBeanstalk = (jobType, data)->
             data: data
         })
         .onSuccess ()->
-            console.log "job loaded #{jobType} (#{data.tx.txid})"
+            console.log "[#{new Date().toString()}] loaded job #{jobType}"
             return
         .onError ()->
-            console.log "error loading job #{jobType} (#{data.tx.txid})"
+            console.log "[#{new Date().toString()}] error loading job #{jobType}"
         return
     .onError ()->
-        console.log "error connecting to beanstalk"
+        console.log "[#{new Date().toString()}] error connecting to beanstalk"
     return
 
 return
