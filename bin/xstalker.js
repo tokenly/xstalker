@@ -97,7 +97,7 @@
   insertJobIntoBeanstalk = function(jobType, data) {
     beanstalkClient.use('btctx').onSuccess(function() {
       beanstalkClient.put(JSON.stringify({
-        job: "Tokenly\\XChainListener\\Job\\" + jobType,
+        job: "App\\Listener\\Job\\" + jobType,
         data: data
       })).onSuccess(function() {
         console.log("[" + (new Date().toString()) + "] loaded job " + jobType);

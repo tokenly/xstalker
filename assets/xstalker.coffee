@@ -122,7 +122,7 @@ socket.on "block", (data) ->
 insertJobIntoBeanstalk = (jobType, data)->
     beanstalkClient.use('btctx').onSuccess ()->
         beanstalkClient.put JSON.stringify({
-            job: "Tokenly\\XChainListener\\Job\\#{jobType}"
+            job: "App\\Listener\\Job\\#{jobType}"
             data: data
         })
         .onSuccess ()->
