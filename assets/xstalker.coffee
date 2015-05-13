@@ -64,7 +64,7 @@ runXStalker = ()->
             .on 'end', ()->
                 txData = JSON.parse(body)
                 # console.log("[#{new Date().toString()}] body: ", body)
-                if DEBUG then console.log("[#{new Date().toString()}] IN: #{txData.valueIn}, OUT: #{txData.valueOut}")
+                # if DEBUG then console.log("[#{new Date().toString()}] IN: #{txData.valueIn}, OUT: #{txData.valueOut}")
 
                 # insert job
                 data = {
@@ -72,7 +72,7 @@ runXStalker = ()->
                     ts: transactionTimestamp
                     tx: txData
                 }
-                insertJobIntoBeanstalk('BTCTransactionJob', data)
+                insertJobIntoBeanstalk('btctx', 'BTCTransactionJob', data, "#{txData.valueIn} => #{txData.valueOut}")
 
                 return
             
@@ -113,7 +113,7 @@ runXStalker = ()->
                     ts: blockTimestamp
                     block: blockData
                 }
-                insertJobIntoBeanstalk('BTCBlockJob', data)
+                insertJobIntoBeanstalk('btcblock', 'BTCBlockJob', data, "Block #{blockData.height} (#{blockData.hash})")
 
                 return
             
@@ -126,17 +126,17 @@ runXStalker = ()->
 
 
     # beanstalk
-    insertJobIntoBeanstalk = (jobType, data)->
-        beanstalkClient.use('btctx').onSuccess ()->
+    insertJobIntoBeanstalk = (queueName, jobType, data, msg)->
+        beanstalkClient.use(queueName).onSuccess ()->
             beanstalkClient.put JSON.stringify({
                 job: "App\\Listener\\Job\\#{jobType}"
                 data: data
             })
             .onSuccess ()->
-                if DEBUG then console.log "[#{new Date().toString()}] loaded job #{jobType}"
+                if DEBUG then console.log "[#{new Date().toString()}] loaded #{queueName}/#{jobType} (#{msg})"
                 return
             .onError ()->
-                console.log "[#{new Date().toString()}] error loading job #{jobType}"
+                console.log "[#{new Date().toString()}] error loading job #{queueName}/#{jobType}"
             return
         .onError ()->
             console.log "[#{new Date().toString()}] error connecting to beanstalk"
