@@ -89,7 +89,7 @@
             ts: blockTimestamp,
             block: blockData
           };
-          insertJobIntoBeanstalk('btcblock', 'BTCBlockJob', data, "Block " + blockData.height + " (" + blockData.hash + ")");
+          insertJobIntoBeanstalk('btcblock', 'BTCBlockJob', data, "Block " + blockData.height + " " + blockData.hash);
         });
       }).on('error', function(e) {
         console.log(("[" + (new Date().toString()) + "] Got error: ") + e.message);

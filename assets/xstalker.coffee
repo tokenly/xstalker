@@ -113,7 +113,7 @@ runXStalker = ()->
                     ts: blockTimestamp
                     block: blockData
                 }
-                insertJobIntoBeanstalk('btcblock', 'BTCBlockJob', data, "Block #{blockData.height} (#{blockData.hash})")
+                insertJobIntoBeanstalk('btcblock', 'BTCBlockJob', data, "Block #{blockData.height} #{blockData.hash}")
 
                 return
             
